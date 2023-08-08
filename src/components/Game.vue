@@ -7,17 +7,22 @@ const board = ref([])
 let numMine = null
 const createBoard = (size) => {
   const board = []
-  for (let i = 0; i < size; i++) {
-    const row = []
-    for (let j = 0; j < size; j++) {
-      row.push({ isOpen: false, hasMine: false, value: 1, flag: false })
+
+  try {
+    for (let i = 0; i < size; i++) {
+      const row = []
+      for (let j = 0; j < size; j++) {
+        row.push({ isOpen: false, hasMine: false, value: 1, flag: false })
+      }
+      board.push(row)
     }
-    board.push(row)
+  } catch (error) {
+    console.log(error)
   }
 
-  const numMines = Math.floor(size * size * 0.2)
+  const numMines = Math.floor(size * size * 0.02)
   numMine = numMines
-  const numFlags = Math.floor(size * size * 0.1)
+  const numFlags = Math.floor(size * size * 0.01)
   const cells = Array.from({ length: size * size }, (_, index) => ({
     row: Math.floor(index / size),
     col: index % size
@@ -90,57 +95,73 @@ function isValidCell(row, col) {
 const openAdjacentCells = (row, col) => {
   const queue = [{ row, col }]
 
-  while (queue.length > 0) {
-    const { row, col } = queue.shift()
-    const cell = board.value[row][col]
+  try {
+    while (queue.length > 0) {
+      const { row, col } = queue.shift()
+      const cell = board.value[row][col]
 
-    if (!cell.isOpen && !cell.flag) {
-      cell.isOpen = true
-      cell.isClicked = true
-    }
+      if (!cell.isOpen && !cell.flag) {
+        cell.isOpen = true
+        cell.isClicked = true
+      }
 
-    if (cell.value === 0) {
-      for (let i = -1; i <= 1; i++) {
-        for (let j = -1; j <= 1; j++) {
-          const newRow = row + i
-          const newCol = col + j
+      if (cell.value === 0) {
+        for (let i = -1; i <= 1; i++) {
+          for (let j = -1; j <= 1; j++) {
+            const newRow = row + i
+            const newCol = col + j
 
-          if (isValidCell(newRow, newCol)) {
-            const newCell = board.value[newRow][newCol]
-            if (!newCell.isOpen && !newCell.flag) {
-              queue.push({ row: newRow, col: newCol })
+            if (isValidCell(newRow, newCol)) {
+              const newCell = board.value[newRow][newCol]
+              if (!newCell.isOpen && !newCell.flag) {
+                queue.push({ row: newRow, col: newCol })
+              }
             }
           }
         }
       }
     }
-  }
-  const totalNonMineCells = boardSize.value * boardSize.value - numMine
-  const nonMineCellsOpened = board.value.reduce((count, row) => {
-    return count + row.filter((cell) => !cell.hasMine && cell.isOpen).length
-  }, 0)
+    const totalNonMineCells = boardSize.value * boardSize.value - numMine
+    const nonMineCellsOpened = board.value.reduce((count, row) => {
+      return count + row.filter((cell) => !cell.hasMine && cell.isOpen).length
+    }, 0)
 
-  if (nonMineCellsOpened === totalNonMineCells && !state.gameOwer) {
-    console.log('Вы победили!')
-    state.stopTimer()
+    if (nonMineCellsOpened === totalNonMineCells && !state.gameOwer) {
+      const existingData = JSON.parse(localStorage.getItem('player')) || []
+      state.playerId = existingData.length + 1
+      const newData = {
+        playerId: state.playerId,
+        points: state.points,
+        time: state.formatTime
+      }
+      existingData.push(newData)
+      localStorage.setItem('player', JSON.stringify(existingData))
+      state.stopTimer()
+    }
+  } catch (error) {
+    console.log(error)
   }
 }
 
 const openCell = (row, col, cell) => {
-  if (cell.isClicked || state.gameOwer || state.start) {
-    return
-  }
-  if (board.value[row][col].hasMine) {
-    state.gameOwer = true
-    state.stopTimer()
-  } else {
-    state.points++
-    board.value[row][col].value = getNeighborMinesCount(row, col)
-  }
-  cell.isOpen = true
-  cell.isClicked = true
+  try {
+    if (cell.isClicked || state.gameOwer || state.start) {
+      return
+    }
+    if (board.value[row][col].hasMine) {
+      state.gameOwer = true
+      state.stopTimer()
+    } else {
+      state.points++
+      board.value[row][col].value = getNeighborMinesCount(row, col)
+    }
+    cell.isOpen = true
+    cell.isClicked = true
 
-  openAdjacentCells(row, col)
+    openAdjacentCells(row, col)
+  } catch (error) {
+    console.log(error)
+  }
 }
 
 const boardSize = computed(() => {
@@ -165,7 +186,6 @@ watch(
 
 onMounted(() => {
   board.value = createBoard(boardSize.value)
-  
 
   watch(
     () => state.gameOwer,

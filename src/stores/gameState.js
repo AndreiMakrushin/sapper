@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 
 export const useGameState = defineStore('gamestate', () => {
   const gameOwer = ref(false)
+  const playerId = ref(0)
   const clearBoard = ref(false)
   const start = ref(true)
   const points = ref(0)
@@ -45,6 +46,12 @@ export const useGameState = defineStore('gamestate', () => {
     selectedTime.value = 10
     clearBoard.value = true
   }
+ 
+  
 
-  return { selectedTime, settingsView, startTimer, stopTimer, formatTime, gameOwer, points, start, restartGame, clearBoard }
+ 
+  
+  
+
+  return { selectedTime, settingsView, startTimer, stopTimer, formatTime, gameOwer, points, start, restartGame, clearBoard, playerId }
 })
