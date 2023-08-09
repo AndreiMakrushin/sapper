@@ -15,6 +15,7 @@ const gameState = reactive(useGameState())
         <Settings />
       </div>
       <div v-else>
+        Времени прошло: {{ gameState.CounterTimer }}
         Остаток времени: {{ gameState.formatTime }}
         <div class="gameANDgameower">
           <Game />

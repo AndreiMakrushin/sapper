@@ -7,7 +7,8 @@ const gameState = reactive(useGameState())
 </script>
 <template>
   <div>
-    игра окончена Твои очки: {{ gameState.points }}
+    {{ gameState.totalNoneMine === 0 ? 'Вы Победили' : 'Вы проиграли' }}
+    Очков набрано: {{ gameState.points }}
     <button class="button-pause" @click="gameState.restartGame">Новая игра</button>
   </div>
 </template>

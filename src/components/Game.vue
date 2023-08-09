@@ -4,7 +4,6 @@ import { useGameState } from '../stores/gameState'
 const state = reactive(useGameState())
 
 const board = ref([])
-let numMine = null
 const createBoard = (size) => {
   const board = []
 
@@ -21,12 +20,12 @@ const createBoard = (size) => {
   }
 
   const numMines = Math.floor(size * size * 0.02)
-  numMine = numMines
   const numFlags = Math.floor(size * size * 0.01)
   const cells = Array.from({ length: size * size }, (_, index) => ({
     row: Math.floor(index / size),
     col: index % size
   }))
+  state.totalNoneMine = cells.length - numMines - numFlags
 
   for (let i = 0; i < numMines + numFlags; i++) {
     const randomIndex = Math.floor(Math.random() * cells.length)
@@ -36,6 +35,7 @@ const createBoard = (size) => {
 
   return board
 }
+
 const getNeighborMinesCount = (row, col) => {
   const directions = [
     { x: -1, y: -1 },
@@ -104,7 +104,7 @@ const openAdjacentCells = (row, col) => {
         cell.isOpen = true
         cell.isClicked = true
       }
-
+      state.totalNoneMine--
       if (cell.value === 0) {
         for (let i = -1; i <= 1; i++) {
           for (let j = -1; j <= 1; j++) {
@@ -121,21 +121,18 @@ const openAdjacentCells = (row, col) => {
         }
       }
     }
-    const totalNonMineCells = boardSize.value * boardSize.value - numMine
-    const nonMineCellsOpened = board.value.reduce((count, row) => {
-      return count + row.filter((cell) => !cell.hasMine && cell.isOpen).length
-    }, 0)
 
-    if (nonMineCellsOpened === totalNonMineCells && !state.gameOwer) {
+    if (state.totalNoneMine === 0 && !state.gameOwer) {
       const existingData = JSON.parse(localStorage.getItem('player')) || []
       state.playerId = existingData.length + 1
       const newData = {
         playerId: state.playerId,
         points: state.points,
-        time: state.formatTime
+        time: state.CounterTimer
       }
       existingData.push(newData)
       localStorage.setItem('player', JSON.stringify(existingData))
+      state.gameOwer = true
       state.stopTimer()
     }
   } catch (error) {
@@ -190,7 +187,7 @@ onMounted(() => {
   watch(
     () => state.gameOwer,
     (value) => {
-      if (value) {
+      if (value && state.totalNoneMine !== 0) {
         document.getElementById('soundBoom').play()
       }
     }
@@ -200,6 +197,7 @@ onMounted(() => {
 
 <template>
   <div>
+    осталось ячеек без мин:{{ state.totalNoneMine }}
     <table class="board">
       <tbody>
         <tr v-for="(row, rowIndex) in board" :key="rowIndex" class="row">
@@ -213,7 +211,10 @@ onMounted(() => {
             <div class="cell-content" v-if="cell.isOpen">
               <div
                 class="cell-value"
-                :class="[cellColor(cell), { bomb: cell.hasMine, 'bomb-animation': cell.hasMine }]"
+                :class="[
+                  cellColor(cell),
+                  { bomb: cell.hasMine || cell.flag, 'bomb-animation': cell.hasMine || cell.flag }
+                ]"
               >
                 {{ cell.flag ? '🚩' : cell.hasMine ? '💣' : cell.value }}
               </div>
@@ -268,7 +269,7 @@ onMounted(() => {
     opacity: 0;
   }
   50% {
-    transform: scale(10);
+    transform: scale(7);
     opacity: 1;
   }
   100% {
