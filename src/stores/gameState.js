@@ -2,6 +2,7 @@ import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 
 export const useGameState = defineStore('gamestate', () => {
+  const flags = ref(0)
   const totalNoneMine = ref(null)
   const gameOwer = ref(false)
   const playerId = ref(0)
@@ -82,6 +83,7 @@ export const useGameState = defineStore('gamestate', () => {
     totalNoneMine,
     timeDisplay,
     addLiderToBabble,
-    existingData
+    existingData,
+    flags
   }
 })

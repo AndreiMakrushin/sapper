@@ -1,18 +1,22 @@
 <script setup>
-import { reactive, computed, ref, onMounted, watch, onBeforeUnmount } from 'vue'
+import { reactive, computed, ref, onMounted, watch } from 'vue'
 import { useGameState } from '../stores/gameState'
 const state = reactive(useGameState())
 
 const board = ref([])
 const createBoard = (size) => {
+  const width = size
+  const height = size > 16 ? Math.ceil(size / 2) : size
+
   const board = []
 
   try {
-    for (let i = 0; i < size; i++) {
+    for (let i = 0; i < height; i++) {
       const row = []
-      for (let j = 0; j < size; j++) {
-        row.push({ isOpen: false, hasMine: false, value: 1, flag: false })
+      for (let j = 0; j < width; j++) {
+        row.push({ isOpen: false, hasMine: false, value: '*', flag: false })
       }
+
       board.push(row)
     }
   } catch (error) {
@@ -20,17 +24,21 @@ const createBoard = (size) => {
   }
 
   const numMines = Math.floor(size * size * 0.02)
-  const numFlags = Math.floor(size * size * 0.01)
+  state.flags = Math.ceil(numMines % 2)
   const cells = Array.from({ length: size * size }, (_, index) => ({
     row: Math.floor(index / size),
     col: index % size
   }))
-  state.totalNoneMine = cells.length - numMines - numFlags
+  state.totalNoneMine = cells.length - numMines
 
-  for (let i = 0; i < numMines + numFlags; i++) {
+  for (let i = 0; i < numMines; i++) {
     const randomIndex = Math.floor(Math.random() * cells.length)
     const { row, col } = cells.splice(randomIndex, 1)[0]
-    board[row][col][i < numMines ? 'hasMine' : 'flag'] = true
+
+    // Добавляем проверку границ перед обращением к элементам массива board
+    if (row >= 0 && row < height && col >= 0 && col < width) {
+      board[row][col][i < numMines ? 'hasMine' : 'flag'] = true
+    }
   }
 
   return board
@@ -100,7 +108,7 @@ const openAdjacentCells = (row, col) => {
       const { row, col } = queue.shift()
       const cell = board.value[row][col]
 
-      if (!cell.isOpen && !cell.flag) {
+      if (!cell.isOpen) {
         cell.isOpen = true
         cell.isClicked = true
       }
@@ -123,15 +131,6 @@ const openAdjacentCells = (row, col) => {
     }
 
     if (state.totalNoneMine === 0 && !state.gameOwer) {
-      /* const existingData = JSON.parse(localStorage.getItem('player')) || []
-      state.playerId = existingData.length + 1
-      const newData = {
-        playerId: state.playerId,
-        points: state.points,
-        time: state.timeDisplay.CounterTimer
-      }
-      existingData.push(newData)
-      localStorage.setItem('player', JSON.stringify(existingData)) */
       state.addLiderToBabble()
       state.gameOwer = true
       state.stopTimer()
@@ -192,51 +191,76 @@ onMounted(() => {
     }
   )
 })
+const toggleFlag = (cell) => {
+  if (state.flags === 0) {
+    return
+  } else {
+    if (!cell.isClicked) {
+      cell.flag = true
+      state.flags--
+      if (cell.hasMine) {
+        const { row, col } = cell
+        for (let i = -1; i <= 1; i++) {
+          for (let j = -1; j <= 1; j++) {
+            const newRow = row + i
+            const newCol = col + j
 
-const unmountHandler = () => {
-  // Ничего не делать при размонтировании компонента
+            if (isValidCell(newRow, newCol)) {
+              const newCell = board.value[newRow][newCol]
+              if (!newCell.isOpen && !newCell.flag) {
+                newCell.value = 1
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 }
-
-onBeforeUnmount(unmountHandler)
 </script>
 
 <template>
   <div>
-    осталось ячеек без мин:{{ state.totalNoneMine }}
-    <table class="board">
-      <tbody>
-        <tr v-for="(row, rowIndex) in board" :key="rowIndex" class="row">
-          <td
-            v-for="(cell, colIndex) in row"
-            :key="colIndex"
-            class="cell"
-            @click="openCell(rowIndex, colIndex, cell)"
-            :disabled="cell.isClicked"
-          >
-            <div class="cell-content" v-if="cell.isOpen">
-              <div
-                class="cell-value"
-                :class="[
-                  cellColor(cell),
-                  { bomb: cell.hasMine || cell.flag, 'bomb-animation': cell.hasMine || cell.flag }
-                ]"
-              >
-                {{ cell.flag ? '🚩' : cell.hasMine ? '💣' : cell.value }}
+    <div class="game-block">
+      <table class="board">
+        <tbody>
+          <tr v-for="(row, rowIndex) in board" :key="rowIndex" class="row">
+            <td
+              v-for="(cell, colIndex) in row"
+              :key="colIndex"
+              class="cell"
+              @click="openCell(rowIndex, colIndex, cell)"
+              @contextmenu.prevent="toggleFlag(cell)"
+              :disabled="cell.isClicked"
+            >
+              <div class="cell-content" v-if="cell.isOpen">
+                <div
+                  class="cell-value"
+                  :class="[
+                    cellColor(cell),
+                    { bomb: cell.hasMine || cell.flag, 'bomb-animation': cell.hasMine }
+                  ]"
+                >
+                  {{ cell.flag ? '🚩' : cell.hasMine ? '💣' : cell.value }}
+                </div>
               </div>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <div class="sound">
-      <audio id="soundBoom" controls>
-        <source src="../sounds//gejm.mp3" type="audio/mpeg" />
-      </audio>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="sound">
+        <audio id="soundBoom" controls>
+          <source src="../sounds//gejm.mp3" type="audio/mpeg" />
+        </audio>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
+.board {
+  margin-top: 30px;
+}
 .cell-value-1 {
   color: blue;
 }
@@ -274,7 +298,7 @@ onBeforeUnmount(unmountHandler)
     opacity: 0;
   }
   50% {
-    transform: scale(7);
+    transform: scale(10);
     opacity: 1;
   }
   100% {
@@ -290,16 +314,17 @@ onBeforeUnmount(unmountHandler)
   display: none;
 }
 .board {
+  margin: 0 auto;
   border-collapse: collapse;
 }
-
 .row {
   display: table-row;
 }
 
 .cell {
-  width: 20px;
-  height: 20px;
+  background-color: #fce38a;
+  width: 30px;
+  height: 30px;
   border: 1px solid black;
   display: table-cell;
   text-align: center;
@@ -307,7 +332,7 @@ onBeforeUnmount(unmountHandler)
 }
 
 .cell-content {
-  background-color: burlywood;
+  background-color: #fbf5df;
   display: flex;
   align-items: center;
   justify-content: center;
