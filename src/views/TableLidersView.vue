@@ -1,10 +1,14 @@
 <script setup>
-import { ref } from 'vue'
-  const liders = JSON.parse(localStorage.getItem('player'))
+import { ref, reactive, onMounted } from 'vue'
+import { useGameState } from '../stores/gameState'
+const state = reactive(useGameState())
+  onMounted(() => {
+      state.restartGame()
+  })
   const sortLiders = ref([])
 
-  if (liders) {
-    sortLiders.value = liders.sort((a, b) => {
+  if (state.existingData) {
+    sortLiders.value = state.existingData.sort((a, b) => {
       const timeA = new Date(`2000-01-01T${a.time}`);
       const timeB = new Date(`2000-01-01T${b.time}`);
       return timeA - timeB;

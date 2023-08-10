@@ -1,7 +1,9 @@
 <script setup>
-import { reactive, computed, ref, onMounted, watch } from 'vue'
+import { reactive, computed, ref, onMounted, watch, onBeforeUnmount } from 'vue'
 import { useGameState } from '../stores/gameState'
 const state = reactive(useGameState())
+
+
 
 const board = ref([])
 const createBoard = (size) => {
@@ -123,15 +125,16 @@ const openAdjacentCells = (row, col) => {
     }
 
     if (state.totalNoneMine === 0 && !state.gameOwer) {
-      const existingData = JSON.parse(localStorage.getItem('player')) || []
+      /* const existingData = JSON.parse(localStorage.getItem('player')) || []
       state.playerId = existingData.length + 1
       const newData = {
         playerId: state.playerId,
         points: state.points,
-        time: state.CounterTimer
+        time: state.timeDisplay.CounterTimer
       }
       existingData.push(newData)
-      localStorage.setItem('player', JSON.stringify(existingData))
+      localStorage.setItem('player', JSON.stringify(existingData)) */
+      state.addLiderToBabble()
       state.gameOwer = true
       state.stopTimer()
     }
@@ -139,6 +142,7 @@ const openAdjacentCells = (row, col) => {
     console.log(error)
   }
 }
+
 
 const openCell = (row, col, cell) => {
   try {
@@ -170,7 +174,6 @@ const boardSize = computed(() => {
     return 32
   }
 })
-
 watch(
   () => state.clearBoard,
   (value) => {
@@ -180,7 +183,6 @@ watch(
     }
   }
 )
-
 onMounted(() => {
   board.value = createBoard(boardSize.value)
 
@@ -193,6 +195,15 @@ onMounted(() => {
     }
   )
 })
+
+
+ 
+
+const unmountHandler = () => {
+  // Ничего не делать при размонтировании компонента
+}
+
+onBeforeUnmount(unmountHandler)
 </script>
 
 <template>

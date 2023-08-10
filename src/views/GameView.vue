@@ -11,18 +11,20 @@ const gameState = reactive(useGameState())
 <template>
   <main>
     <div class="block">
-      <div v-if="gameState.settingsView">
-        <Settings />
-      </div>
-      <div v-else>
-        Времени прошло: {{ gameState.CounterTimer }}
-        Остаток времени: {{ gameState.formatTime }}
-        <div class="gameANDgameower">
+  <div v-if="gameState.settingsView">
+    <Settings />
+  </div>
+  <div v-else>
+    Времени прошло: {{ gameState.timeDisplay.CounterTimer }}
+    Остаток времени: {{ gameState.timeDisplay.formatTime }}
+    
+      <div class="gameANDgameower">
           <Game />
-          <GameOwer v-if="gameState.gameOwer" />
-        </div>
+        <GameOwer v-if="gameState.gameOwer" />
       </div>
-    </div>
+  </div>
+</div>
+
 
     <div class="buttons-game">
       <button class="button-strat-game" @click="gameState.startTimer()" :disabled="!gameState.start">

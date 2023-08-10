@@ -12,6 +12,7 @@ export const useGameState = defineStore('gamestate', () => {
   const timer = ref(0)
   const selectedTime = ref(10)
   const timerCounter = ref(0)
+  const existingData = JSON.parse(localStorage.getItem('player')) || []
   let interval
 
   const startTimer = () => {
@@ -25,6 +26,7 @@ export const useGameState = defineStore('gamestate', () => {
         timerCounter.value++
         timer.value--
         if (timer.value <= 0) {
+          gameOwer.value = true
           clearInterval(interval)
         }
       }, 1000)
@@ -35,25 +37,35 @@ export const useGameState = defineStore('gamestate', () => {
     clearInterval(interval)
   }
 
-  const formatTime = computed(() => {
-    const minutes = Math.floor(timer.value / 60)
-    const seconds = timer.value % 60
-    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
-  })
-  const CounterTimer = computed(() => {
-    const minutes = Math.floor(timerCounter.value / 60)
-    const seconds = timerCounter.value % 60
-    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+  const timeDisplay = computed(() => {
+    const formatMinutes = (time) => String(Math.floor(time / 60)).padStart(2, '0')
+    const formatSeconds = (time) => String(time % 60).padStart(2, '0')
+
+    return {
+      formatTime: `${formatMinutes(timer.value)}:${formatSeconds(timer.value)}`,
+      CounterTimer: `${formatMinutes(timerCounter.value)}:${formatSeconds(timerCounter.value)}`
+    }
   })
 
   const restartGame = () => {
+    timer.value = 0
     gameOwer.value = false
     start.value = true
     points.value = 0
-    timer.value = 0
     selectedTime.value = 10
     clearBoard.value = true
     timerCounter.value = 0
+  }
+
+  const addLiderToBabble = () => {
+    playerId.value = existingData.length + 1
+    const newData = {
+      playerId: playerId.value,
+      points: points.value,
+      time: timeDisplay.value.CounterTimer
+    }
+    existingData.push(newData)
+    localStorage.setItem('player', JSON.stringify(existingData))
   }
 
   return {
@@ -61,7 +73,6 @@ export const useGameState = defineStore('gamestate', () => {
     settingsView,
     startTimer,
     stopTimer,
-    formatTime,
     gameOwer,
     points,
     start,
@@ -69,6 +80,8 @@ export const useGameState = defineStore('gamestate', () => {
     clearBoard,
     playerId,
     totalNoneMine,
-    CounterTimer
+    timeDisplay,
+    addLiderToBabble,
+    existingData
   }
 })

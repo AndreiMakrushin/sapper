@@ -1,21 +1,18 @@
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
-import {ref} from 'vue'
-import { useGameState } from './stores/gameState'
-const gameState = ref(useGameState())
 </script>
 
 <template>
   <header>
     <div class="wrapper">
       <nav>
-        <RouterLink to="/" @click="gameState.restartGame">Игра</RouterLink>
+        <RouterLink to="/">Игра</RouterLink>
         <RouterLink to="/liders">Лидеры</RouterLink>
       </nav>
     </div>
   </header>
-
   <RouterView />
+
 </template>
 
 <style scoped>
