@@ -2,8 +2,6 @@
 import { reactive } from 'vue'
 import { useGameState } from '../stores/gameState'
 const gameState = reactive(useGameState())
-
-
 </script>
 <template>
   <div>

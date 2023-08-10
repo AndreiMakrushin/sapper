@@ -2,18 +2,18 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useGameState } from '../stores/gameState'
 const state = reactive(useGameState())
-  onMounted(() => {
-      state.restartGame()
-  })
-  const sortLiders = ref([])
+onMounted(() => {
+  state.restartGame()
+})
+const sortLiders = ref([])
 
-  if (state.existingData) {
-    sortLiders.value = state.existingData.sort((a, b) => {
-      const timeA = new Date(`2000-01-01T${a.time}`);
-      const timeB = new Date(`2000-01-01T${b.time}`);
-      return timeA - timeB;
-    });
-  }
+if (state.existingData) {
+  sortLiders.value = state.existingData.sort((a, b) => {
+    const timeA = new Date(`2000-01-01T${a.time}`)
+    const timeB = new Date(`2000-01-01T${b.time}`)
+    return timeA - timeB
+  })
+}
 </script>
 
 <template>
@@ -23,8 +23,6 @@ const state = reactive(useGameState())
         {{ lider }}
       </div>
     </div>
-    <div v-else>
-     Эта таблица пустая
-    </div>
+    <div v-else>Эта таблица пустая</div>
   </div>
 </template>

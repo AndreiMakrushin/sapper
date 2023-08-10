@@ -20,9 +20,6 @@ onMounted(() => {
 watch(selectedComplexity, () => {
   gameState.selectedTime = selectedComplexity.value.time
 })
-
-
-
 </script>
 
 <template>

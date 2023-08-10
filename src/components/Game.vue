@@ -3,8 +3,6 @@ import { reactive, computed, ref, onMounted, watch, onBeforeUnmount } from 'vue'
 import { useGameState } from '../stores/gameState'
 const state = reactive(useGameState())
 
-
-
 const board = ref([])
 const createBoard = (size) => {
   const board = []
@@ -143,7 +141,6 @@ const openAdjacentCells = (row, col) => {
   }
 }
 
-
 const openCell = (row, col, cell) => {
   try {
     if (cell.isClicked || state.gameOwer || state.start) {
@@ -195,9 +192,6 @@ onMounted(() => {
     }
   )
 })
-
-
- 
 
 const unmountHandler = () => {
   // Ничего не делать при размонтировании компонента
