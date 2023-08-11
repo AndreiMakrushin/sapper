@@ -1,10 +1,8 @@
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive } from 'vue'
 import { useGameState } from '../stores/gameState'
 const state = reactive(useGameState())
-onMounted(() => {
-  state.restartGame()
-})
+
 const sortLiders = ref([])
 
 if (state.existingData) {
